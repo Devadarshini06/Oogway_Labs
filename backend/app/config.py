@@ -23,7 +23,7 @@ class Settings(BaseSettings):
         description="Async PostgreSQL connection URI"
     )
     DATABASE_SYNC_URL: str = Field(
-        default="postgresql://devadarshinink@localhost:5432/lenny_assistant",
+        default="postgresql+psycopg2://devadarshinink@localhost:5432/lenny_assistant",
         description="Sync PostgreSQL connection URI for migrations"
     )
     

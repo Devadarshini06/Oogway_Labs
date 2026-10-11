@@ -16,8 +16,8 @@ from backend.app.schemas.chat import (
 from backend.app.providers.router import provider_router
 from backend.app.rag.retriever import retriever
 from backend.app.skills.ship30 import ship30_skill
-from backend.app.skills.artifact_generator import artifact_skill
 from backend.app.providers.base import LLMResponse
+from backend.app.agent.claude_agent_bridge import claude_agent_bridge
 
 logger = logging.getLogger(__name__)
 
@@ -97,25 +97,35 @@ class AgentOrchestrator:
             model_name=request.model
         )
 
-        # 4. RAG Retrieval
+        # 4. Agent Tool: RAG Retrieval via Claude Agent Bridge
         retrieved_chunks = []
         citations: List[Citation] = []
         if request.enable_rag:
-            retrieved_chunks = await retriever.retrieve(db=db, query=request.message, top_k=5)
+            tool_output = await claude_agent_bridge.execute_tool(
+                tool_name="retrieve_podcast_knowledge",
+                tool_input={"query": request.message, "top_k": 5},
+                db=db,
+                provider=provider
+            )
+            retrieved_chunks = tool_output.get("chunks", [])
             citations = retriever.format_citations(retrieved_chunks)
 
-        # 5. Check Special Skill Routing
+        # 5. Agent Tool Dispatch: Check Special Skill Routing
         assistant_content = ""
         generated_artifact_ref: Optional[ArtifactRef] = None
 
         if is_ship30_requested(request.message, request.trigger_ship30):
-            # Route to Ship 30 for 30 Skill
-            logger.info("Routing request to Ship 30 for 30 Essay Skill")
-            essay_text, validation = await ship30_skill.execute(
-                provider=provider,
-                topic=request.message,
-                evidence_chunks=retrieved_chunks
+            # Route through Claude Agent Bridge
+            logger.info("Routing request to Claude Agent Bridge: generate_ship30_essay")
+            tool_output = await claude_agent_bridge.execute_tool(
+                tool_name="generate_ship30_essay",
+                tool_input={"topic": request.message},
+                db=db,
+                provider=provider
             )
+            essay_text = tool_output.get("essay", "")
+            if tool_output.get("citations"):
+                citations = tool_output.get("citations")
             assistant_content = essay_text
 
             # Also save as Markdown artifact
@@ -139,13 +149,20 @@ class AgentOrchestrator:
             )
 
         elif is_artifact_requested(request.message, request.trigger_artifact):
-            # Route to Artifact Generator Skill
-            logger.info("Routing request to Artifact Generator Skill")
-            art_title, art_html = await artifact_skill.generate_artifact(
-                provider=provider,
-                prompt=request.message,
-                artifact_type="html"
+            # Route through Claude Agent Bridge
+            logger.info("Routing request to Claude Agent Bridge: generate_artifact")
+            tool_output = await claude_agent_bridge.execute_tool(
+                tool_name="generate_artifact",
+                tool_input={
+                    "title": "Interactive Dashboard",
+                    "artifact_type": "html",
+                    "prompt": request.message
+                },
+                db=db,
+                provider=provider
             )
+            art_title = tool_output.get("title", "Generated Artifact")
+            art_html = tool_output.get("content", "")
 
             assistant_content = (
                 f"I've generated a dedicated interactive artifact for you: **{art_title}**.\n\n"
@@ -198,24 +215,38 @@ class AgentOrchestrator:
                     f"</transcript_{i}>\n"
                 )
 
-            formatted_system = SYSTEM_GROUNDING_PROMPT
-            if transcript_context:
-                formatted_system += f"\n\n<podcast_transcripts>{transcript_context}\n</podcast_transcripts>"
+            if not retrieved_chunks and request.enable_rag:
+                msg_lower = request.message.lower().strip()
+                if any(g in msg_lower for g in ["hello", "hi", "hey", "who are you", "what can you do"]):
+                    assistant_content = (
+                        "Hello! I am **The Lenny Growth Assistant**, an AI product and growth partner trained on transcripts of Lenny's Podcast.\n\n"
+                        "Ask me about product-led growth, retention, go-to-market strategies, metrics, or request a structured Ship 30 essay!"
+                    )
+                else:
+                    assistant_content = (
+                        "Based on Lenny's indexed podcast archive, this specific topic is not covered in the episodes currently indexed.\n\n"
+                        "Lenny's guests focus on tactical product management, growth loops, retention, pricing, and organizational leadership.\n\n"
+                        "Rather than speculating or hallucinating, I recommend asking about topics covered by our indexed guests, such as **Elena Verna** (B2B PLG & retention), **Casey Winters** (growth loops & scaling), or **Shreyas Doshi** (product strategy & frameworks)."
+                    )
             else:
-                formatted_system += "\n\n<podcast_transcripts>\n(No matching transcripts found in archive. State honestly that the indexed material does not cover this question.)\n</podcast_transcripts>"
+                formatted_system = SYSTEM_GROUNDING_PROMPT
+                if transcript_context:
+                    formatted_system += f"\n\n<podcast_transcripts>{transcript_context}\n</podcast_transcripts>"
+                else:
+                    formatted_system += "\n\n<podcast_transcripts>\n(No matching transcripts found in archive. State honestly that the indexed material does not cover this question.)\n</podcast_transcripts>"
 
-            # Format recent messages (last 6 turns)
-            llm_messages = []
-            recent_msgs = past_messages[-6:]
-            for m in recent_msgs:
-                llm_messages.append({"role": m.role, "content": m.content})
+                # Format recent messages (last 6 turns)
+                llm_messages = []
+                recent_msgs = past_messages[-6:]
+                for m in recent_msgs:
+                    llm_messages.append({"role": m.role, "content": m.content})
 
-            response: LLMResponse = await provider.generate(
-                messages=llm_messages,
-                system_prompt=formatted_system,
-                temperature=0.3
-            )
-            assistant_content = response.content
+                response: LLMResponse = await provider.generate(
+                    messages=llm_messages,
+                    system_prompt=formatted_system,
+                    temperature=0.3
+                )
+                assistant_content = response.content
 
         # 6. Persist assistant message
         assistant_msg_id = str(uuid.uuid4())

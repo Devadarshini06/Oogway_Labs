@@ -38,6 +38,12 @@ if [ ! -d frontend/node_modules ]; then
     (cd frontend && npm install)
 fi
 
+# 5. Apply Database Migrations if Alembic is configured
+if [ -d alembic ]; then
+    echo "Applying database schema migrations (Alembic)..."
+    PYTHONPATH=. .venv/bin/alembic upgrade head || true
+fi
+
 echo "Starting Backend API on http://localhost:8000..."
 PYTHONPATH=. .venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 &
 BACKEND_PID=$!

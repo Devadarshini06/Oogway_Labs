@@ -28,6 +28,16 @@ def sanitize_artifact_content(content: str, artifact_type: str) -> str:
         sanitized = re.sub(r"document\.cookie", "/*blocked_cookie*/", sanitized, flags=re.IGNORECASE)
         sanitized = re.sub(r"localStorage", "/*blocked_storage*/", sanitized, flags=re.IGNORECASE)
         sanitized = re.sub(r"sessionStorage", "/*blocked_storage*/", sanitized, flags=re.IGNORECASE)
+
+        # Inject Content-Security-Policy meta tag to enforce defense-in-depth isolation
+        csp_tag = '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\' https:; script-src \'unsafe-inline\'; font-src https: data:; img-src data: https:;">'
+        if '<meta http-equiv="Content-Security-Policy"' not in sanitized:
+            if "<head>" in sanitized.lower():
+                sanitized = re.sub(r"(<head[^>]*>)", r"\1\n  " + csp_tag, sanitized, count=1, flags=re.IGNORECASE)
+            elif "<html>" in sanitized.lower():
+                sanitized = re.sub(r"(<html[^>]*>)", r"\1\n<head>\n  " + csp_tag + "\n</head>", sanitized, count=1, flags=re.IGNORECASE)
+            else:
+                sanitized = f"{csp_tag}\n{sanitized}"
         return sanitized
     return content
 
