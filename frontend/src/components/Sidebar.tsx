@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Plus, MessageSquare, Trash2, Database, Sparkles, Compass } from 'lucide-react';
 import type { Session } from '../types';
 
@@ -12,6 +12,12 @@ interface SidebarProps {
   activeModel: string;
   isOpen: boolean;
   onCloseMobile: () => void;
+  dbConnected?: boolean | null;
+}
+
+interface DateGroup {
+  label: string;
+  items: Session[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -24,7 +30,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeModel,
   isOpen,
   onCloseMobile,
+  dbConnected,
 }) => {
+  // Deduplicate and group sessions chronologically by date
+  const groupedSessions = useMemo<DateGroup[]>(() => {
+    // Deduplicate by ID
+    const uniqueMap = new Map<string, Session>();
+    for (const s of sessions) {
+      if (!uniqueMap.has(s.id)) {
+        uniqueMap.set(s.id, s);
+      }
+    }
+    const uniqueList = Array.from(uniqueMap.values());
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfYesterday = startOfToday - 86400000;
+    const startOfPast7Days = startOfToday - 7 * 86400000;
+
+    const groups: { [key: string]: Session[] } = {
+      Today: [],
+      Yesterday: [],
+      'Previous 7 Days': [],
+      Older: [],
+    };
+
+    for (const session of uniqueList) {
+      const rawDate = session.updated_at || session.created_at;
+      const time = rawDate ? new Date(rawDate).getTime() : 0;
+
+      if (time >= startOfToday) {
+        groups.Today.push(session);
+      } else if (time >= startOfYesterday) {
+        groups.Yesterday.push(session);
+      } else if (time >= startOfPast7Days) {
+        groups['Previous 7 Days'].push(session);
+      } else {
+        groups.Older.push(session);
+      }
+    }
+
+    return Object.entries(groups)
+      .filter(([_, items]) => items.length > 0)
+      .map(([label, items]) => ({ label, items }));
+  }, [sessions]);
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -32,13 +82,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div
           className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-xs"
           onClick={onCloseMobile}
+          aria-hidden="true"
         />
       )}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-zinc-900/90 border-r border-zinc-800/80 flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-zinc-900/95 border-r border-zinc-800/80 flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
+        aria-label="Sidebar navigation"
       >
         {/* App Branding */}
         <div className="p-4 border-b border-zinc-800/80 flex items-center justify-between">
@@ -59,7 +111,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-3">
           <button
             onClick={onNewChat}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium text-xs shadow-sm transition-all duration-150 active:scale-[0.99] cursor-pointer"
+            aria-label="Start new chat"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium text-xs shadow-sm transition-all duration-150 active:scale-[0.99] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             <Plus className="w-4 h-4" />
             <span>New Chat</span>
@@ -67,49 +120,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Sessions List */}
-        <div className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5">
-          <div className="px-2 py-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-            Conversations
-          </div>
-          {sessions.length === 0 ? (
-            <div className="px-3 py-6 text-center text-xs text-zinc-400">
+        <div className="flex-1 overflow-y-auto px-2 py-1 space-y-4">
+          {groupedSessions.length === 0 ? (
+            <div className="px-3 py-8 text-center text-xs text-zinc-400">
               No previous chats yet. Start a conversation above!
             </div>
           ) : (
-            sessions.map((s) => {
-              const isActive = s.id === activeSessionId;
-              return (
-                <div
-                  key={s.id}
-                  onClick={() => onSelectSession(s.id)}
-                  className={`group flex items-center justify-between px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors ${
-                    isActive
-                      ? 'bg-zinc-800 text-zinc-100 font-medium'
-                      : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 overflow-hidden mr-2">
-                    <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-70" />
-                    <span className="truncate">{s.title || 'Untitled Session'}</span>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteSession(s.id);
-                    }}
-                    title="Delete session"
-                    className="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 rounded transition-opacity cursor-pointer"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+            groupedSessions.map((group) => (
+              <div key={group.label} className="space-y-1">
+                <div className="px-2 py-1 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+                  {group.label}
                 </div>
-              );
-            })
+                {group.items.map((s) => {
+                  const isActive = s.id === activeSessionId;
+                  return (
+                    <div
+                      key={s.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onSelectSession(s.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onSelectSession(s.id);
+                        }
+                      }}
+                      className={`group flex items-center justify-between px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+                        isActive
+                          ? 'bg-zinc-800 text-zinc-100 font-medium'
+                          : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden mr-2">
+                        <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-70" />
+                        <span className="truncate">{s.title || 'Untitled Session'}</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteSession(s.id);
+                        }}
+                        aria-label={`Delete conversation ${s.title || ''}`}
+                        title="Delete session"
+                        className="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 rounded transition-opacity cursor-pointer focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ))
           )}
         </div>
 
         {/* System & Model Status Bar */}
-        <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/40 text-[11px] space-y-2">
+        <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/60 text-[11px] space-y-2">
           <div className="flex items-center justify-between text-zinc-400">
             <span className="flex items-center gap-1.5">
               <Sparkles className="w-3 h-3 text-indigo-400" />
@@ -122,10 +188,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="flex items-center justify-between text-zinc-400 pt-1 border-t border-zinc-800/50">
             <span className="flex items-center gap-1.5">
-              <Database className="w-3 h-3 text-emerald-400" />
+              <Database
+                className={`w-3 h-3 ${
+                  dbConnected === true
+                    ? 'text-emerald-400'
+                    : dbConnected === false
+                    ? 'text-red-400'
+                    : 'text-zinc-500'
+                }`}
+              />
               <span>PostgreSQL</span>
             </span>
-            <span className="text-[10px] text-emerald-400 font-medium">Connected</span>
+            <span
+              className={`text-[10px] font-medium flex items-center gap-1 ${
+                dbConnected === true
+                  ? 'text-emerald-400'
+                  : dbConnected === false
+                  ? 'text-red-400'
+                  : 'text-zinc-400'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  dbConnected === true
+                    ? 'bg-emerald-400'
+                    : dbConnected === false
+                    ? 'bg-red-400'
+                    : 'bg-zinc-500'
+                }`}
+              />
+              {dbConnected === true
+                ? 'Connected'
+                : dbConnected === false
+                ? 'Offline'
+                : 'Checking...'}
+            </span>
           </div>
         </div>
       </aside>

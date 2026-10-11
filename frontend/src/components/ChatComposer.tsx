@@ -39,7 +39,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
   return (
     <div className="w-full max-w-3xl mx-auto p-4 space-y-2">
       {/* Quick Skill Action Buttons */}
-      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+      <div className="flex flex-wrap items-center gap-2 text-xs">
         <button
           type="button"
           disabled={isLoading}
@@ -48,7 +48,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
             onSendMessage(prompt, true, false);
             setInput('');
           }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 hover:text-white transition-colors cursor-pointer text-[11px]"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/40 text-zinc-300 hover:text-white transition-all cursor-pointer text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:opacity-50"
         >
           <Feather className="w-3 h-3 text-amber-400" />
           <span>Generate Ship 30 Essay</span>
@@ -62,7 +62,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
             onSendMessage(prompt, false, true);
             setInput('');
           }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 hover:text-white transition-colors cursor-pointer text-[11px]"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-emerald-500/40 text-zinc-300 hover:text-white transition-all cursor-pointer text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50"
         >
           <LayoutDashboard className="w-3 h-3 text-emerald-400" />
           <span>Generate HTML Artifact</span>
@@ -72,7 +72,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
       {/* Input box */}
       <form
         onSubmit={(e) => handleSubmit(e)}
-        className="relative bg-zinc-900 border border-zinc-800 focus-within:border-indigo-500/60 rounded-2xl p-2 shadow-lg transition-all"
+        className="relative bg-zinc-900/90 border border-zinc-800 focus-within:border-indigo-500/60 rounded-2xl p-2 shadow-lg transition-all"
       >
         <textarea
           ref={textareaRef}
@@ -81,6 +81,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
           onKeyDown={handleKeyDown}
           disabled={isLoading}
           rows={1}
+          aria-label="Type your product or growth question"
           placeholder="Ask a growth or product question from Lenny's Podcast..."
           className="w-full bg-transparent text-zinc-100 placeholder-zinc-500 text-sm px-2.5 py-1.5 resize-none outline-none focus:ring-0 max-h-40 overflow-y-auto leading-relaxed"
         />
@@ -90,10 +91,11 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className={`flex items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${
+            aria-label="Send message"
+            className={`flex items-center justify-center p-2 rounded-xl transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
               input.trim() && !isLoading
                 ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
-                : 'bg-zinc-800 text-zinc-400 cursor-not-allowed'
+                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
             }`}
           >
             <Send className="w-3.5 h-3.5" />

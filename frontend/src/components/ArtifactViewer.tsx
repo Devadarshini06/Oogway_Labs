@@ -25,7 +25,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
   const isHtml = artifact.artifact_type.toLowerCase() === 'html';
 
   return (
-    <aside className="w-full md:w-[480px] lg:w-[560px] h-full bg-zinc-900 border-l border-zinc-800 flex flex-col z-20 shrink-0">
+    <aside
+      aria-label="Artifact inspector"
+      className="w-full md:w-[480px] lg:w-[560px] h-full bg-zinc-900 border-l border-zinc-800 flex flex-col z-20 shrink-0"
+    >
       {/* Header */}
       <div className="p-3.5 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/60">
         <div className="flex items-center gap-2 overflow-hidden mr-2">
@@ -41,8 +44,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
           {/* View mode toggle */}
           <div className="flex items-center bg-zinc-800 rounded-lg p-0.5 border border-zinc-700/60 text-xs">
             <button
+              type="button"
               onClick={() => setViewMode('preview')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer ${
+              aria-label="Preview rendered artifact"
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 ${
                 viewMode === 'preview'
                   ? 'bg-zinc-700 text-white font-medium'
                   : 'text-zinc-400 hover:text-zinc-200'
@@ -52,8 +57,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
               <span>Preview</span>
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('source')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer ${
+              aria-label="View artifact source code"
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 ${
                 viewMode === 'source'
                   ? 'bg-zinc-700 text-white font-medium'
                   : 'text-zinc-400 hover:text-zinc-200'
@@ -66,18 +73,22 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
 
           {/* Copy Button */}
           <button
+            type="button"
             onClick={handleCopy}
+            aria-label="Copy artifact content"
             title="Copy code"
-            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
 
           {/* Close Button */}
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close artifact viewer"
             title="Close viewer"
-            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400"
           >
             <X className="w-4 h-4" />
           </button>

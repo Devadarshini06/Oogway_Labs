@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Layers, AlertCircle } from 'lucide-react';
+import { Menu, Layers, AlertCircle, RefreshCw } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { ModelSelector } from './components/ModelSelector';
 import { ChatArea } from './components/ChatArea';
@@ -16,17 +16,24 @@ export const App: React.FC = () => {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>('ollama');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [dbConnected, setDbConnected] = useState<boolean | null>(null);
   const [errorBanner, setErrorBanner] = useState<{ message: string; hint?: string } | null>(null);
+  const [lastFailedPrompt, setLastFailedPrompt] = useState<{
+    prompt: string;
+    ship30?: boolean;
+    artifact?: boolean;
+  } | null>(null);
 
   // Panels & Modals
   const [activeArtifact, setActiveArtifact] = useState<ArtifactRef | null>(null);
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
   const [sidebarOpenMobile, setSidebarOpenMobile] = useState<boolean>(false);
 
-  // Load initial sessions & models
+  // Load initial sessions, models, and real database status
   useEffect(() => {
     loadSessions();
     loadModels();
+    checkReadiness();
   }, []);
 
   // When active session changes, load messages
@@ -38,6 +45,15 @@ export const App: React.FC = () => {
       setActiveArtifact(null);
     }
   }, [activeSessionId]);
+
+  const checkReadiness = async () => {
+    try {
+      const ready = await api.getReady();
+      setDbConnected(ready.database?.connected ?? true);
+    } catch {
+      setDbConnected(false);
+    }
+  };
 
   const loadSessions = async () => {
     try {
@@ -55,7 +71,9 @@ export const App: React.FC = () => {
     try {
       const data = await api.getModels();
       setModels(data.models);
-      setSelectedProvider(data.active_provider);
+      if (data.active_provider) {
+        setSelectedProvider(data.active_provider);
+      }
     } catch (e) {
       console.error('Failed to load models:', e);
     }
@@ -81,11 +99,12 @@ export const App: React.FC = () => {
   const handleNewChat = async () => {
     try {
       const newSession = await api.createSession();
-      setSessions([newSession, ...sessions]);
+      setSessions((prev) => [newSession, ...prev.filter((s) => s.id !== newSession.id)]);
       setActiveSessionId(newSession.id);
       setMessages([]);
       setActiveArtifact(null);
       setErrorBanner(null);
+      setLastFailedPrompt(null);
       setSidebarOpenMobile(false);
     } catch (e) {
       console.error('Failed to create new session:', e);
@@ -111,7 +130,10 @@ export const App: React.FC = () => {
     triggerArtifact = false
   ) => {
     setErrorBanner(null);
+    setLastFailedPrompt(null);
     setIsLoading(true);
+
+    const activeModel = models.find((m) => m.provider === selectedProvider);
 
     // Optimistic user message
     const tempUserMsg: Message = {
@@ -129,6 +151,7 @@ export const App: React.FC = () => {
         session_id: activeSessionId || undefined,
         message: prompt,
         provider: selectedProvider,
+        model: activeModel?.id,
         trigger_ship30: triggerShip30,
         trigger_artifact: triggerArtifact,
       });
@@ -165,6 +188,7 @@ export const App: React.FC = () => {
       console.error('Chat error:', err);
       // Remove optimistic message if error
       setMessages((prev) => prev.filter((m) => !m.id.startsWith('temp-')));
+      setLastFailedPrompt({ prompt, ship30: triggerShip30, artifact: triggerArtifact });
 
       if (err instanceof ApiError && err.detail) {
         const detail = err.detail;
@@ -174,7 +198,7 @@ export const App: React.FC = () => {
         });
       } else {
         setErrorBanner({
-          message: err.message || 'An unexpected error occurred.',
+          message: err.message || 'An unexpected error occurred while processing your request.',
         });
       }
     } finally {
@@ -195,9 +219,16 @@ export const App: React.FC = () => {
         onNewChat={handleNewChat}
         onDeleteSession={handleDeleteSession}
         activeProvider={selectedProvider}
-        activeModel={models.find((m) => m.provider === selectedProvider)?.name || selectedProvider}
+        activeModel={
+          selectedProvider === 'ollama'
+            ? 'qwen2.5:0.5b'
+            : selectedProvider === 'anthropic'
+            ? 'claude-3-5-sonnet'
+            : 'gpt-4o-mini'
+        }
         isOpen={sidebarOpenMobile}
         onCloseMobile={() => setSidebarOpenMobile(false)}
+        dbConnected={dbConnected}
       />
 
       {/* Main Chat Center Container */}
@@ -207,7 +238,8 @@ export const App: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSidebarOpenMobile(true)}
-              className="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 md:hidden cursor-pointer"
+              aria-label="Open sidebar menu"
+              className="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 md:hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -221,7 +253,8 @@ export const App: React.FC = () => {
             {activeArtifact && (
               <button
                 onClick={() => setActiveArtifact(null)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/15 border border-indigo-500/20 text-indigo-300 text-xs font-medium cursor-pointer"
+                aria-label="Close artifact viewer"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/30 text-indigo-300 text-xs font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Close Artifact</span>
@@ -237,7 +270,7 @@ export const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Error Banner */}
+        {/* Error Banner with Retry */}
         {errorBanner && (
           <div className="px-4 py-2.5 bg-red-950/40 border-b border-red-900/50 flex items-start gap-3 text-xs text-red-300 animate-in fade-in">
             <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
@@ -245,12 +278,33 @@ export const App: React.FC = () => {
               <p className="font-semibold">{errorBanner.message}</p>
               {errorBanner.hint && <p className="text-[11px] text-red-400/90">{errorBanner.hint}</p>}
             </div>
-            <button
-              onClick={() => setErrorBanner(null)}
-              className="text-red-400 hover:text-red-200 text-xs font-medium cursor-pointer"
-            >
-              Dismiss
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {lastFailedPrompt && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const p = lastFailedPrompt;
+                    setLastFailedPrompt(null);
+                    setErrorBanner(null);
+                    handleSendMessage(p.prompt, p.ship30, p.artifact);
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-red-900/60 hover:bg-red-800/80 text-red-200 text-xs font-medium transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Retry</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorBanner(null);
+                  setLastFailedPrompt(null);
+                }}
+                className="text-red-400 hover:text-red-200 text-xs font-medium cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 
