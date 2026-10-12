@@ -114,22 +114,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-gradient-to-b from-[#2A0313] via-[#350518] to-[#20020F] border-r border-[#4A0A24] flex flex-col transition-transform duration-300 ease-in-out text-white ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-[#3A0519] border-r border-[#4A0A24] flex flex-col transition-transform duration-300 ease-in-out text-white ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
         aria-label="Sidebar navigation"
       >
         {/* App Branding */}
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#3A0519]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FFF5EC] to-[#F3D5C5] text-[#670D2F] flex items-center justify-center shadow-md shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#F3E3D0] text-[#670D2F] flex items-center justify-center shadow-md shrink-0">
               <Compass className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="font-bold text-sm tracking-tight text-white">
+              <h1 className="font-bold text-sm tracking-tight text-[#FFFFFF]">
                 Lenny Growth Assistant
               </h1>
-              <p className="text-[11px] text-[#C9A8B6]">Podcast Knowledge Workspace</p>
+              <p className="text-[11px] text-[#E8C9D5]">Podcast Knowledge Workspace</p>
             </div>
           </div>
         </div>
@@ -170,13 +170,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Sessions List */}
         <div className="flex-1 overflow-y-auto px-2 py-1 space-y-4">
           {groupedSessions.length === 0 ? (
-            <div className="px-3 py-8 text-center text-xs text-[#C9A8B6]">
+            <div className="px-3 py-8 text-center text-xs text-[#E8C9D5]/80">
               {searchQuery ? 'No matching conversations.' : 'No previous chats yet. Start a conversation above!'}
             </div>
           ) : (
             groupedSessions.map((group) => (
               <div key={group.label} className="space-y-1">
-                <div className="px-2.5 py-1 text-[10px] font-bold text-[#B8879C] uppercase tracking-wider">
+                <div className="px-2.5 py-1 text-[10px] font-bold text-[#E8C9D5] uppercase tracking-wider">
                   {group.label}
                 </div>
                 {group.items.map((s) => {
@@ -196,11 +196,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A53860] ${
                         isActive
                           ? 'bg-gradient-to-r from-[#670D2F] to-[#8C163F] text-white font-medium border border-white/20 shadow-sm'
-                          : 'text-[#E0BACB] hover:bg-white/8 hover:text-white'
+                          : 'text-[#E8C9D5] hover:bg-white/8 hover:text-white'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 overflow-hidden mr-2">
-                        <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-[#B8879C]'}`} />
+                        <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-[#E8C9D5]/70'}`} />
                         <span className="truncate">{s.title || 'Untitled Session'}</span>
                       </div>
                       <button
@@ -224,9 +224,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* System & Model Status Bar */}
         <div className="p-3 border-t border-white/10 bg-black/25 text-[11px] space-y-2">
-          <div className="flex items-center justify-between text-[#C9A8B6]">
+          <div className="flex items-center justify-between text-[#E8C9D5]">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-[#E0BACB]" />
+              <Sparkles className="w-3 h-3 text-[#E8C9D5]" />
               <span>Provider</span>
             </span>
             <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/10 shadow-xs">
@@ -234,7 +234,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-[#C9A8B6] pt-1 border-t border-white/10">
+          <div className="flex items-center justify-between text-[#E8C9D5] pt-1 border-t border-white/10">
             <span className="flex items-center gap-1.5">
               <Database
                 className={`w-3 h-3 ${
