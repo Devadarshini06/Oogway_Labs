@@ -27,30 +27,30 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
   return (
     <aside
       aria-label="Artifact inspector"
-      className="w-full md:w-[480px] lg:w-[560px] h-full bg-zinc-900 border-l border-zinc-800 flex flex-col z-20 shrink-0"
+      className="w-full md:w-[480px] lg:w-[560px] h-full bg-white border-l border-[#E5E7EB] flex flex-col z-20 shrink-0 shadow-lg"
     >
       {/* Header */}
-      <div className="p-3.5 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/60">
+      <div className="p-3.5 border-b border-[#E5E7EB] flex items-center justify-between bg-gray-50/80">
         <div className="flex items-center gap-2 overflow-hidden mr-2">
-          <span className="text-xs font-mono uppercase px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold">
+          <span className="text-xs font-mono uppercase px-1.5 py-0.5 rounded bg-indigo-50 text-[#4F46E5] border border-indigo-200 font-semibold">
             {artifact.artifact_type}
           </span>
-          <h2 className="font-semibold text-xs text-zinc-100 truncate" title={artifact.title}>
+          <h2 className="font-semibold text-xs text-[#171923] truncate" title={artifact.title}>
             {artifact.title}
           </h2>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
           {/* View mode toggle */}
-          <div className="flex items-center bg-zinc-800 rounded-lg p-0.5 border border-zinc-700/60 text-xs">
+          <div className="flex items-center bg-gray-100 rounded-lg p-0.5 border border-[#E5E7EB] text-xs">
             <button
               type="button"
               onClick={() => setViewMode('preview')}
               aria-label="Preview rendered artifact"
               className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 ${
                 viewMode === 'preview'
-                  ? 'bg-zinc-700 text-white font-medium'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-white text-[#171923] font-medium shadow-xs'
+                  : 'text-[#6B7280] hover:text-[#171923]'
               }`}
             >
               <Eye className="w-3 h-3" />
@@ -62,8 +62,8 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
               aria-label="View artifact source code"
               className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 ${
                 viewMode === 'source'
-                  ? 'bg-zinc-700 text-white font-medium'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-white text-[#171923] font-medium shadow-xs'
+                  : 'text-[#6B7280] hover:text-[#171923]'
               }`}
             >
               <Code className="w-3 h-3" />
@@ -77,9 +77,9 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
             onClick={handleCopy}
             aria-label="Copy artifact content"
             title="Copy code"
-            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400"
+            className="p-1.5 hover:bg-gray-100 text-[#6B7280] hover:text-[#171923] rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-[#059669]" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
 
           {/* Close Button */}
@@ -88,7 +88,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
             onClick={onClose}
             aria-label="Close artifact viewer"
             title="Close viewer"
-            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400"
+            className="p-1.5 hover:bg-gray-100 text-[#6B7280] hover:text-[#171923] rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400"
           >
             <X className="w-4 h-4" />
           </button>
@@ -97,20 +97,20 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
 
       {/* Security Banner for HTML */}
       {isHtml && (
-        <div className="px-3.5 py-1.5 bg-emerald-950/30 border-b border-emerald-900/30 flex items-center justify-between text-[11px] text-emerald-400">
+        <div className="px-3.5 py-1.5 bg-emerald-50 border-b border-emerald-200 flex items-center justify-between text-[11px] text-[#059669]">
           <span className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
             <span>Sandboxed Iframe Execution (Null Origin Isolated)</span>
           </span>
-          <span className="text-[10px] text-zinc-400 font-mono">sandbox="allow-scripts"</span>
+          <span className="text-[10px] text-[#6B7280] font-mono">sandbox="allow-scripts"</span>
         </div>
       )}
 
       {/* Content Canvas */}
-      <div className="flex-1 overflow-auto bg-zinc-950 p-4">
+      <div className="flex-1 overflow-auto bg-[#F5F6FA] p-4">
         {viewMode === 'preview' ? (
           isHtml ? (
-            <div className="w-full h-full min-h-[500px] rounded-lg overflow-hidden border border-zinc-800 bg-white">
+            <div className="w-full h-full min-h-[500px] rounded-lg overflow-hidden border border-[#E5E7EB] bg-white shadow-xs">
               <iframe
                 title={artifact.title}
                 sandbox="allow-scripts"
@@ -119,14 +119,14 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ artifact, onClos
               />
             </div>
           ) : (
-            <div className="prose prose-invert prose-sm max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-300 prose-strong:text-zinc-100 prose-ul:text-zinc-300">
+            <div className="prose prose-sm max-w-none text-[#171923] prose-headings:text-[#171923] prose-p:text-[#374151] prose-strong:text-[#171923] prose-ul:text-[#374151]">
               <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
                 {artifact.content}
               </ReactMarkdown>
             </div>
           )
         ) : (
-          <pre className="font-mono text-xs text-zinc-300 whitespace-pre-wrap break-all p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+          <pre className="font-mono text-xs text-gray-100 whitespace-pre-wrap break-all p-3 bg-gray-900 rounded-lg border border-gray-800">
             <code>{artifact.content}</code>
           </pre>
         )}

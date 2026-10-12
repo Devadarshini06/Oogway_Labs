@@ -48,9 +48,9 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
             onSendMessage(prompt, true, false);
             setInput('');
           }}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/40 text-zinc-300 hover:text-white transition-all cursor-pointer text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white hover:bg-amber-50/60 border border-[#E5E7EB] hover:border-amber-300 text-[#171923] shadow-xs transition-all cursor-pointer text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:opacity-50"
         >
-          <Feather className="w-3 h-3 text-amber-400" />
+          <Feather className="w-3 h-3 text-amber-600" />
           <span>Generate Ship 30 Essay</span>
         </button>
 
@@ -62,9 +62,9 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
             onSendMessage(prompt, false, true);
             setInput('');
           }}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-emerald-500/40 text-zinc-300 hover:text-white transition-all cursor-pointer text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white hover:bg-emerald-50/60 border border-[#E5E7EB] hover:border-emerald-300 text-[#171923] shadow-xs transition-all cursor-pointer text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50"
         >
-          <LayoutDashboard className="w-3 h-3 text-emerald-400" />
+          <LayoutDashboard className="w-3 h-3 text-emerald-600" />
           <span>Generate HTML Artifact</span>
         </button>
       </div>
@@ -72,7 +72,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
       {/* Input box */}
       <form
         onSubmit={(e) => handleSubmit(e)}
-        className="relative bg-zinc-900/90 border border-zinc-800 focus-within:border-indigo-500/60 rounded-2xl p-2 shadow-lg transition-all"
+        className="relative bg-white border border-[#E5E7EB] focus-within:border-[#4F46E5] focus-within:ring-2 focus-within:ring-indigo-100 rounded-2xl p-2 shadow-sm transition-all"
       >
         <textarea
           ref={textareaRef}
@@ -83,10 +83,10 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
           rows={1}
           aria-label="Type your product or growth question"
           placeholder="Ask a growth or product question from Lenny's Podcast..."
-          className="w-full bg-transparent text-zinc-100 placeholder-zinc-500 text-sm px-2.5 py-1.5 resize-none outline-none focus:ring-0 max-h-40 overflow-y-auto leading-relaxed"
+          className="w-full bg-transparent text-[#171923] placeholder-[#6B7280] text-sm px-2.5 py-1.5 resize-none outline-none focus:ring-0 max-h-40 overflow-y-auto leading-relaxed"
         />
 
-        <div className="flex items-center justify-between pt-1.5 px-2 text-[11px] text-zinc-400 border-t border-zinc-800/50">
+        <div className="flex items-center justify-between pt-1.5 px-2 text-[11px] text-[#6B7280] border-t border-[#E5E7EB]">
           <span className="hidden sm:inline">Press Enter to send, Shift+Enter for new line</span>
           <button
             type="submit"
@@ -94,8 +94,8 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
             aria-label="Send message"
             className={`flex items-center justify-center p-2 rounded-xl transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
               input.trim() && !isLoading
-                ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                ? 'bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-xs'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
           >
             <Send className="w-3.5 h-3.5" />

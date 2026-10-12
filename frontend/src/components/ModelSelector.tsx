@@ -57,22 +57,22 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         aria-haspopup="listbox"
         aria-expanded={dropdownOpen}
         aria-label="Select AI model provider"
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-850 hover:bg-zinc-800 border border-zinc-700/70 text-xs font-medium text-zinc-200 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white hover:bg-gray-50 border border-[#E5E7EB] text-xs font-medium text-[#171923] shadow-xs transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
       >
         {activeModel?.is_local ? (
-          <span className="flex items-center gap-1.5 text-emerald-400 shrink-0">
+          <span className="flex items-center gap-1.5 text-[#059669] shrink-0">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                activeModel.is_available ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'
+                activeModel.is_available ? 'bg-[#059669] animate-pulse' : 'bg-[#DC2626]'
               }`}
             />
             <Cpu className="w-3.5 h-3.5" />
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 text-indigo-400 shrink-0">
+          <span className="flex items-center gap-1.5 text-[#4F46E5] shrink-0">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                activeModel?.is_available ? 'bg-emerald-400' : 'bg-amber-400'
+                activeModel?.is_available ? 'bg-[#059669]' : 'bg-[#D97706]'
               }`}
             />
             <Cloud className="w-3.5 h-3.5" />
@@ -84,7 +84,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         </span>
 
         <ChevronDown
-          className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-150 ${
+          className={`w-3.5 h-3.5 text-[#6B7280] transition-transform duration-150 ${
             dropdownOpen ? 'rotate-180' : ''
           }`}
         />
@@ -94,9 +94,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         <div
           role="listbox"
           aria-label="AI model providers"
-          className="absolute right-0 mt-1.5 w-72 sm:w-80 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-50 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100"
+          className="absolute right-0 mt-1.5 w-72 sm:w-80 bg-white border border-[#E5E7EB] rounded-xl shadow-xl z-50 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100"
         >
-          <div className="px-2.5 py-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider border-b border-zinc-800/60">
+          <div className="px-2.5 py-1.5 text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider border-b border-[#E5E7EB]">
             Available Model Providers
           </div>
 
@@ -113,32 +113,32 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 }}
                 className={`w-full flex items-start justify-between p-2.5 rounded-lg text-left text-xs transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 ${
                   isSelected
-                    ? 'bg-indigo-600/15 text-indigo-200 border border-indigo-500/30'
-                    : 'hover:bg-zinc-800/60 text-zinc-300'
+                    ? 'bg-[#EEF2FF] text-[#4F46E5] border border-indigo-200'
+                    : 'hover:bg-gray-50 text-[#171923]'
                 }`}
               >
                 <div className="space-y-1 pr-2">
                   <div className="flex items-center gap-2 font-medium">
                     {m.is_local ? (
-                      <Cpu className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <Cpu className="w-3.5 h-3.5 text-[#059669] shrink-0" />
                     ) : (
-                      <Cloud className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                      <Cloud className="w-3.5 h-3.5 text-[#4F46E5] shrink-0" />
                     )}
-                    <span className="text-zinc-100 font-semibold">{getCleanLabel(m)}</span>
+                    <span className="text-[#171923] font-semibold">{getCleanLabel(m)}</span>
                   </div>
 
-                  <div className="text-[11px] text-zinc-400">
+                  <div className="text-[11px] text-[#6B7280]">
                     {m.status_message || (m.is_local ? 'Local Ollama service' : 'Cloud API endpoint')}
                   </div>
 
                   <div className="text-[10px] flex items-center gap-1 pt-0.5">
                     {m.is_available ? (
-                      <span className="text-emerald-400 font-medium flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="text-[#059669] font-medium flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" />
                         {m.is_local ? 'Active & Ready (Local)' : 'Configured & Ready'}
                       </span>
                     ) : (
-                      <span className="text-amber-400 flex items-center gap-1">
+                      <span className="text-[#D97706] flex items-center gap-1 font-medium">
                         <AlertCircle className="w-3 h-3 shrink-0" />
                         API Key Required in .env
                       </span>
@@ -147,7 +147,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 </div>
 
                 {isSelected && (
-                  <Check className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 text-[#4F46E5] shrink-0 mt-0.5" />
                 )}
               </button>
             );
