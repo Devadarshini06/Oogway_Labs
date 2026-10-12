@@ -317,6 +317,8 @@ export const App: React.FC = () => {
           }
           onInspectCitation={setSelectedCitation}
           onOpenArtifact={setActiveArtifact}
+          activeProvider={selectedProvider}
+          activeModel={models.find((m) => m.provider === selectedProvider)?.name}
         />
 
         {/* Composer */}

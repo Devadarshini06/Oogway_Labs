@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Plus, MessageSquare, Trash2, Database, Sparkles, Compass } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, MessageSquare, Trash2, Database, Sparkles, Compass, Search, X } from 'lucide-react';
 import type { Session } from '../types';
 
 interface SidebarProps {
@@ -32,16 +32,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   dbConnected,
 }) => {
-  // Deduplicate and group sessions chronologically by date
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Non-destructive presentation filter to hide synthetic test runner sessions in demo view
+  const isTestSession = (title?: string) => {
+    if (!title) return false;
+    const lower = title.toLowerCase();
+    return (
+      lower.includes('pre-submission validation') ||
+      lower.includes('journey test session') ||
+      lower.includes('test message') ||
+      lower.includes('session b') ||
+      lower.includes('test 1')
+    );
+  };
+
+  // Deduplicate, filter test artifacts, and group sessions chronologically by date
   const groupedSessions = useMemo<DateGroup[]>(() => {
-    // Deduplicate by ID
+    // 1. Deduplicate by ID
     const uniqueMap = new Map<string, Session>();
     for (const s of sessions) {
       if (!uniqueMap.has(s.id)) {
         uniqueMap.set(s.id, s);
       }
     }
-    const uniqueList = Array.from(uniqueMap.values());
+    let list = Array.from(uniqueMap.values());
+
+    // 2. Filter test artifacts non-destructively (unless currently active)
+    list = list.filter((s) => s.id === activeSessionId || !isTestSession(s.title));
+
+    // 3. Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((s) => (s.title || '').toLowerCase().includes(q));
+    }
 
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -55,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       Older: [],
     };
 
-    for (const session of uniqueList) {
+    for (const session of list) {
       const rawDate = session.updated_at || session.created_at;
       const time = rawDate ? new Date(rawDate).getTime() : 0;
 
@@ -73,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return Object.entries(groups)
       .filter(([_, items]) => items.length > 0)
       .map(([label, items]) => ({ label, items }));
-  }, [sessions]);
+  }, [sessions, activeSessionId, searchQuery]);
 
   return (
     <>
@@ -102,13 +126,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <h1 className="font-semibold text-sm tracking-tight text-zinc-100">
                 Lenny Assistant
               </h1>
-              <p className="text-[11px] text-zinc-400">Podcast Knowledge Base</p>
+              <p className="text-[11px] text-zinc-400">Podcast Knowledge Workspace</p>
             </div>
           </div>
         </div>
 
         {/* New Chat Button */}
-        <div className="p-3">
+        <div className="p-3 pb-2 space-y-2">
           <button
             onClick={onNewChat}
             aria-label="Start new chat"
@@ -117,18 +141,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Plus className="w-4 h-4" />
             <span>New Chat</span>
           </button>
+
+          {/* Search Box */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations..."
+              className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-zinc-850 border border-zinc-800 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 p-0.5 cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Sessions List */}
         <div className="flex-1 overflow-y-auto px-2 py-1 space-y-4">
           {groupedSessions.length === 0 ? (
             <div className="px-3 py-8 text-center text-xs text-zinc-400">
-              No previous chats yet. Start a conversation above!
+              {searchQuery ? 'No matching conversations.' : 'No previous chats yet. Start a conversation above!'}
             </div>
           ) : (
             groupedSessions.map((group) => (
               <div key={group.label} className="space-y-1">
-                <div className="px-2 py-1 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+                <div className="px-2 py-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
                   {group.label}
                 </div>
                 {group.items.map((s) => {

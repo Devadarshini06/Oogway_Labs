@@ -89,7 +89,7 @@ class AgentOrchestrator:
             citations=[]
         )
         db.add(user_msg)
-        await db.commit()
+        await db.flush()
 
         # 3. Resolve LLM provider
         provider = provider_router.get_provider(
