@@ -11,7 +11,11 @@ class OllamaProvider(BaseLLMProvider):
 
     def __init__(self, base_url: Optional[str] = None, model: Optional[str] = None):
         self.base_url = (base_url or settings.OLLAMA_BASE_URL).rstrip("/")
-        self.model = model or settings.OLLAMA_MODEL
+        clean_model = (model or "").strip()
+        if not clean_model or clean_model.lower() == "ollama":
+            self.model = settings.OLLAMA_MODEL
+        else:
+            self.model = clean_model
         self.timeout = settings.LLM_TIMEOUT_SECONDS
 
     def get_provider_name(self) -> str:
@@ -62,6 +66,15 @@ class OllamaProvider(BaseLLMProvider):
                     f"{self.base_url}/api/chat",
                     json=payload
                 )
+                if response.status_code == 404 and self.model != settings.OLLAMA_MODEL:
+                    logger.warning(
+                        f"Ollama model '{self.model}' not found (404). Falling back to configured '{settings.OLLAMA_MODEL}'."
+                    )
+                    payload["model"] = settings.OLLAMA_MODEL
+                    response = await client.post(
+                        f"{self.base_url}/api/chat",
+                        json=payload
+                    )
                 if response.status_code != 200:
                     raise ProviderUnavailableError(
                         provider="ollama",
@@ -73,7 +86,7 @@ class OllamaProvider(BaseLLMProvider):
                 return LLMResponse(
                     content=content,
                     provider="ollama",
-                    model_name=self.model,
+                    model_name=payload.get("model", self.model),
                     raw_response=data
                 )
         except httpx.ConnectError as exc:

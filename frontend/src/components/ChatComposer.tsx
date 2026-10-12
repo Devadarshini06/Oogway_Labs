@@ -37,7 +37,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
   }, [input]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 space-y-2">
+    <div className="w-full max-w-4xl mx-auto p-4 sm:p-5 space-y-2.5">
       {/* Quick Skill Action Buttons */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <button
@@ -48,9 +48,9 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
             onSendMessage(prompt, true, false);
             setInput('');
           }}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white hover:bg-amber-50/60 border border-[#E5E7EB] hover:border-amber-300 text-[#171923] shadow-xs transition-all cursor-pointer text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-[#FAF7F2] border border-[#ECE3D8] hover:border-[#670D2F]/50 text-[#1E141B] shadow-xs transition-all cursor-pointer text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#670D2F] disabled:opacity-50"
         >
-          <Feather className="w-3 h-3 text-amber-600" />
+          <Feather className="w-3.5 h-3.5 text-[#670D2F]" />
           <span>Generate Ship 30 Essay</span>
         </button>
 
@@ -62,17 +62,17 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
             onSendMessage(prompt, false, true);
             setInput('');
           }}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white hover:bg-emerald-50/60 border border-[#E5E7EB] hover:border-emerald-300 text-[#171923] shadow-xs transition-all cursor-pointer text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-[#FAF7F2] border border-[#ECE3D8] hover:border-[#670D2F]/50 text-[#1E141B] shadow-xs transition-all cursor-pointer text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#670D2F] disabled:opacity-50"
         >
-          <LayoutDashboard className="w-3 h-3 text-emerald-600" />
+          <LayoutDashboard className="w-3.5 h-3.5 text-[#670D2F]" />
           <span>Generate HTML Artifact</span>
         </button>
       </div>
 
-      {/* Input box */}
+      {/* Floating Curved Input Card */}
       <form
         onSubmit={(e) => handleSubmit(e)}
-        className="relative bg-white border border-[#E5E7EB] focus-within:border-[#4F46E5] focus-within:ring-2 focus-within:ring-indigo-100 rounded-2xl p-2 shadow-sm transition-all"
+        className="relative bg-white border border-[#ECE3D8] focus-within:border-[#8C163F] focus-within:ring-2 focus-within:ring-[#8C163F]/15 rounded-2xl p-3 shadow-md shadow-[#2A0313]/4 transition-all"
       >
         <textarea
           ref={textareaRef}
@@ -83,22 +83,22 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({ onSendMessage, isLoa
           rows={1}
           aria-label="Type your product or growth question"
           placeholder="Ask a growth or product question from Lenny's Podcast..."
-          className="w-full bg-transparent text-[#171923] placeholder-[#6B7280] text-sm px-2.5 py-1.5 resize-none outline-none focus:ring-0 max-h-40 overflow-y-auto leading-relaxed"
+          className="w-full bg-transparent text-[#1E141B] placeholder-[#8A7B84] text-sm px-2 py-1 resize-none outline-none focus:ring-0 max-h-40 overflow-y-auto leading-relaxed"
         />
 
-        <div className="flex items-center justify-between pt-1.5 px-2 text-[11px] text-[#6B7280] border-t border-[#E5E7EB]">
+        <div className="flex items-center justify-between pt-2 px-1 text-[11px] text-[#8A7B84]">
           <span className="hidden sm:inline">Press Enter to send, Shift+Enter for new line</span>
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
             aria-label="Send message"
-            className={`flex items-center justify-center p-2 rounded-xl transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C163F] ${
               input.trim() && !isLoading
-                ? 'bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-xs'
+                ? 'bg-[#670D2F] hover:bg-[#4A0A23] text-white shadow-md active:scale-95'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-4 h-4" />
           </button>
         </div>
       </form>

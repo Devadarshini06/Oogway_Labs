@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, MessageSquare, Trash2, Database, Sparkles, Compass, Search, X } from 'lucide-react';
 import type { Session } from '../types';
+import { isSyntheticTestSession } from '../types';
 
 interface SidebarProps {
   sessions: Session[];
@@ -34,20 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Non-destructive presentation filter to hide synthetic test runner sessions in demo view
-  const isTestSession = (title?: string) => {
-    if (!title) return false;
-    const lower = title.toLowerCase();
-    return (
-      lower.includes('pre-submission validation') ||
-      lower.includes('journey test session') ||
-      lower.includes('test message') ||
-      lower.includes('session b') ||
-      lower.includes('test 1')
-    );
-  };
-
-  // Deduplicate, filter test artifacts, and group sessions chronologically by date
+  // Deduplicate, filter synthetic test artifacts non-destructively, and group chronologically
   const groupedSessions = useMemo<DateGroup[]>(() => {
     const uniqueMap = new Map<string, Session>();
     for (const s of sessions) {
@@ -57,8 +45,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
     let list = Array.from(uniqueMap.values());
 
-    // Filter test artifacts non-destructively unless active
-    list = list.filter((s) => s.id === activeSessionId || !isTestSession(s.title));
+    // Hide synthetic automated test runner sessions non-destructively, preserve all legitimate user sessions
+    list = list.filter((s) => !isSyntheticTestSession(s.title));
 
     // Search filter
     if (searchQuery.trim()) {
@@ -72,10 +60,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const startOfPast7Days = startOfToday - 7 * 86400000;
 
     const groups: { [key: string]: Session[] } = {
-      Today: [],
-      Yesterday: [],
-      'Previous 7 Days': [],
-      Older: [],
+      TODAY: [],
+      YESTERDAY: [],
+      'PREVIOUS 7 DAYS': [],
+      OLDER: [],
     };
 
     for (const session of list) {
@@ -83,19 +71,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
       const time = rawDate ? new Date(rawDate).getTime() : 0;
 
       if (time >= startOfToday) {
-        groups.Today.push(session);
+        groups.TODAY.push(session);
       } else if (time >= startOfYesterday) {
-        groups.Yesterday.push(session);
+        groups.YESTERDAY.push(session);
       } else if (time >= startOfPast7Days) {
-        groups['Previous 7 Days'].push(session);
+        groups['PREVIOUS 7 DAYS'].push(session);
       } else {
-        groups.Older.push(session);
+        groups.OLDER.push(session);
       }
     }
 
+    const deduplicateGroup = (items: Session[]) => {
+      const seen = new Set<string>();
+      const result: Session[] = [];
+      for (const item of items) {
+        const titleKey = (item.title || 'Untitled Session').trim().toLowerCase();
+        if (item.id === activeSessionId) {
+          result.push(item);
+          seen.add(titleKey);
+        } else if (!seen.has(titleKey)) {
+          seen.add(titleKey);
+          result.push(item);
+        }
+      }
+      return result;
+    };
+
     return Object.entries(groups)
-      .filter(([_, items]) => items.length > 0)
-      .map(([label, items]) => ({ label, items }));
+      .map(([label, items]) => ({ label, items: deduplicateGroup(items) }))
+      .filter(({ items }) => items.length > 0);
   }, [sessions, activeSessionId, searchQuery]);
 
   return (
@@ -103,29 +107,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-30 md:hidden backdrop-blur-xs"
+          className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-xs"
           onClick={onCloseMobile}
           aria-hidden="true"
         />
       )}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-gradient-to-b from-[#2A0313] via-[#350518] to-[#20020F] border-r border-[#4A0A24] flex flex-col transition-transform duration-300 ease-in-out text-white ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
         aria-label="Sidebar navigation"
       >
         {/* App Branding */}
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FFF5EC] to-[#F3D5C5] text-[#670D2F] flex items-center justify-center shadow-md shrink-0">
               <Compass className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="font-semibold text-sm tracking-tight text-gray-900">
-                Lenny Assistant
+              <h1 className="font-bold text-sm tracking-tight text-white">
+                Lenny Growth Assistant
               </h1>
-              <p className="text-[11px] text-gray-500">Podcast Knowledge Workspace</p>
+              <p className="text-[11px] text-[#C9A8B6]">Podcast Knowledge Workspace</p>
             </div>
           </div>
         </div>
@@ -135,27 +139,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onNewChat}
             aria-label="Start new chat"
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg font-medium text-xs shadow-xs transition-all duration-150 active:scale-[0.99] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#7D0E36] to-[#A53860] hover:from-[#6B0C2E] hover:to-[#912A50] text-white rounded-xl font-semibold text-xs shadow-md shadow-[#2A0313]/50 transition-all duration-150 active:scale-[0.99] cursor-pointer border border-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A53860]"
           >
             <Plus className="w-4 h-4" />
-            <span>New Chat</span>
+            <span>+ New Chat</span>
           </button>
 
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+              className="w-full pl-8 pr-7 py-1.5 rounded-xl bg-white/10 border border-white/10 text-xs text-white placeholder-white/40 focus:outline-none focus:bg-white/15 focus:border-[#A53860] transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
                 aria-label="Clear search"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/50 hover:text-white p-0.5 cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -166,13 +170,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Sessions List */}
         <div className="flex-1 overflow-y-auto px-2 py-1 space-y-4">
           {groupedSessions.length === 0 ? (
-            <div className="px-3 py-8 text-center text-xs text-gray-500">
+            <div className="px-3 py-8 text-center text-xs text-[#C9A8B6]">
               {searchQuery ? 'No matching conversations.' : 'No previous chats yet. Start a conversation above!'}
             </div>
           ) : (
             groupedSessions.map((group) => (
               <div key={group.label} className="space-y-1">
-                <div className="px-2 py-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                <div className="px-2.5 py-1 text-[10px] font-bold text-[#B8879C] uppercase tracking-wider">
                   {group.label}
                 </div>
                 {group.items.map((s) => {
@@ -189,14 +193,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           onSelectSession(s.id);
                         }
                       }}
-                      className={`group flex items-center justify-between px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                      className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A53860] ${
                         isActive
-                          ? 'bg-[#EEF2FF] text-[#4F46E5] font-semibold border border-indigo-100 shadow-xs'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-gradient-to-r from-[#670D2F] to-[#8C163F] text-white font-medium border border-white/20 shadow-sm'
+                          : 'text-[#E0BACB] hover:bg-white/8 hover:text-white'
                       }`}
                     >
-                      <div className="flex items-center gap-2 overflow-hidden mr-2">
-                        <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
+                      <div className="flex items-center gap-2.5 overflow-hidden mr-2">
+                        <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-[#B8879C]'}`} />
                         <span className="truncate">{s.title || 'Untitled Session'}</span>
                       </div>
                       <button
@@ -206,7 +210,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         }}
                         aria-label={`Delete conversation ${s.title || ''}`}
                         title="Delete session"
-                        className="opacity-0 group-hover:opacity-100 hover:text-red-600 text-gray-400 p-1 rounded transition-opacity cursor-pointer focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400"
+                        className="opacity-0 group-hover:opacity-100 hover:text-rose-300 text-white/50 p-1 rounded transition-opacity cursor-pointer focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -219,46 +223,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* System & Model Status Bar */}
-        <div className="p-3 border-t border-gray-150 bg-gray-50/80 text-[11px] space-y-2">
-          <div className="flex items-center justify-between text-gray-600">
+        <div className="p-3 border-t border-white/10 bg-black/25 text-[11px] space-y-2">
+          <div className="flex items-center justify-between text-[#C9A8B6]">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-indigo-600" />
+              <Sparkles className="w-3 h-3 text-[#E0BACB]" />
               <span>Provider</span>
             </span>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white text-gray-700 border border-gray-200 shadow-xs">
+            <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/10 shadow-xs">
               {activeProvider}: {activeModel}
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-gray-600 pt-1 border-t border-gray-200">
+          <div className="flex items-center justify-between text-[#C9A8B6] pt-1 border-t border-white/10">
             <span className="flex items-center gap-1.5">
               <Database
                 className={`w-3 h-3 ${
                   dbConnected === true
-                    ? 'text-emerald-600'
+                    ? 'text-emerald-400'
                     : dbConnected === false
-                    ? 'text-red-600'
-                    : 'text-gray-400'
+                    ? 'text-rose-400'
+                    : 'text-white/40'
                 }`}
               />
               <span>PostgreSQL</span>
             </span>
             <span
-              className={`text-[10px] font-medium flex items-center gap-1 ${
+              className={`text-[10px] font-medium flex items-center gap-1.5 ${
                 dbConnected === true
-                  ? 'text-emerald-600'
+                  ? 'text-emerald-400'
                   : dbConnected === false
-                  ? 'text-red-600'
-                  : 'text-gray-500'
+                  ? 'text-rose-400'
+                  : 'text-[#C9A8B6]'
               }`}
             >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
                   dbConnected === true
-                    ? 'bg-emerald-600'
+                    ? 'bg-emerald-400 animate-pulse'
                     : dbConnected === false
-                    ? 'bg-red-600'
-                    : 'bg-gray-400'
+                    ? 'bg-rose-400'
+                    : 'bg-white/40'
                 }`}
               />
               {dbConnected === true

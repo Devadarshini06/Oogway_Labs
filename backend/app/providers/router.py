@@ -32,6 +32,10 @@ class ProviderRouter:
         """
         target_name = (provider_name or settings.LLM_PROVIDER).lower().strip()
 
+        # If model_name matches provider name or is generic/empty, use the provider's default model
+        if model_name and model_name.lower().strip() in ("ollama", "anthropic", "openai", "default", ""):
+            model_name = None
+
         if target_name == "ollama":
             return OllamaProvider(model=model_name or settings.OLLAMA_MODEL)
         elif target_name == "anthropic":

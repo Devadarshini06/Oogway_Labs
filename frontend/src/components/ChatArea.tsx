@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { User, Quote, Layout, Feather, Layers, ExternalLink, Compass, Copy, Check, AlertCircle } from 'lucide-react';
+import { User, Quote, Layout, Feather, Layers, ExternalLink, Compass, Copy, Check, AlertCircle, Target, TrendingUp, Sparkles, Award, ArrowUpRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -21,24 +21,32 @@ const FOUR_STRATEGY_CARDS = [
     prompt: 'What is the best retention strategy according to Elena Verna and Casey Winters?',
     desc: 'Tactical loops, retention prioritization over acquisition, and churn reduction.',
     badge: 'Retention',
+    iconColor: 'bg-[#670D2F]',
+    icon: Target,
   },
   {
     title: 'B2B Product-Led Growth Playbook',
     prompt: 'What makes a B2B product-led growth strategy effective?',
     desc: 'Self-serve funnels, viral expansion loops, and activation metrics.',
     badge: 'PLG',
+    iconColor: 'bg-[#670D2F]',
+    icon: TrendingUp,
   },
   {
     title: 'Product-Market Fit Engine',
     prompt: "How does the Superhuman PMF engine systematically measure and improve fit?",
     desc: 'The 40% disappointment threshold and high-expectation customer segmentation.',
     badge: 'PMF',
+    iconColor: 'bg-[#670D2F]',
+    icon: Sparkles,
   },
   {
     title: 'Product Strategy & High Agency',
     prompt: 'What frameworks does Shreyas Doshi share for product strategy and high-agency execution?',
     desc: 'Avoiding impact vs. effort traps, strategic planning, and career agency.',
     badge: 'Strategy',
+    iconColor: 'bg-[#670D2F]',
+    icon: Award,
   },
 ];
 
@@ -48,6 +56,7 @@ const SPECIALIZED_ACTION_CARDS = [
     prompt: 'Turn podcast insights on Product-Led Growth and Retention into a Ship 30 for 30 essay.',
     desc: 'Synthesizes an executive ~1,250-word tactical essay with provocative hook, lead-in, thematic pillars, and a Monday morning checklist.',
     badge: 'Long-Form Essay',
+    iconColor: 'bg-[#670D2F]',
     ship30: true,
   },
   {
@@ -55,6 +64,7 @@ const SPECIALIZED_ACTION_CARDS = [
     prompt: 'Create an HTML dashboard explaining the user retention loop.',
     desc: 'Generates a sandboxed, self-contained visual component with interactive metric trees and growth loop diagrams.',
     badge: 'Visual Component',
+    iconColor: 'bg-[#670D2F]',
     artifact: true,
   },
 ];
@@ -86,99 +96,105 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   const hasOrphanedUserTurn = lastMessage && lastMessage.role === 'user' && !isLoading;
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
       {messages.length === 0 ? (
-        /* Empty / Welcome State */
-        <div className="max-w-3xl mx-auto py-8 sm:py-12 space-y-8 text-center animate-in fade-in duration-200">
-          <div className="space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-[#4F46E5] mx-auto shadow-xs">
+        /* Empty / Welcome State with expansive width and full title visibility */
+        <div className="max-w-4xl mx-auto pt-6 sm:pt-10 pb-32 sm:pb-40 space-y-9 text-center animate-in fade-in duration-200">
+          <div className="space-y-4">
+            <div className="w-14 h-14 rounded-full bg-white border-2 border-[#670D2F]/20 text-[#670D2F] shadow-sm flex items-center justify-center mx-auto ring-8 ring-[#670D2F]/5">
               <Compass className="w-6 h-6" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171923]">
+            <h2 className="text-2xl sm:text-[32px] font-extrabold tracking-tight text-[#1E141B]">
               Your growth strategy, grounded in Lenny's Podcast.
             </h2>
-            <p className="text-xs sm:text-sm text-[#6B7280] max-w-lg mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#6C5B65] max-w-xl mx-auto leading-relaxed">
               Tactical product and growth advice grounded in 260+ episodes of Lenny's Podcast archive.
               Select a core topic below or synthesize long-form essays and visual components.
             </p>
           </div>
 
           {/* 4 Core Strategy Prompt Cards */}
-          <div className="space-y-2.5 text-left max-w-2xl mx-auto">
-            <div className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-1">
+          <div className="space-y-3.5 text-left max-w-4xl mx-auto">
+            <div className="text-[11px] font-bold text-[#670D2F] uppercase tracking-wider px-1">
               Core Strategic Frameworks
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {FOUR_STRATEGY_CARDS.map((item, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => onSelectSuggested(item.prompt)}
-                  className="p-3.5 rounded-xl bg-white hover:bg-indigo-50/40 border border-[#E5E7EB] hover:border-indigo-300 transition-all duration-150 text-left cursor-pointer group space-y-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 shadow-xs"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-xs text-[#171923] group-hover:text-[#4F46E5] transition-colors">
-                      {item.title}
-                    </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 text-[#6B7280] border border-gray-200 shrink-0">
-                      {item.badge}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#6B7280] leading-relaxed line-clamp-2">
-                    {item.desc}
-                  </p>
-                </button>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {FOUR_STRATEGY_CARDS.map((item, idx) => {
+                const IconComponent = item.icon;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => onSelectSuggested(item.prompt)}
+                    aria-label={`Explore strategic framework: ${item.title}`}
+                    className="p-4 sm:p-4.5 rounded-2xl bg-white hover:bg-[#FFFDFB] border border-[#ECE3D8] hover:border-[#A53860]/60 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-200 text-left cursor-pointer group flex items-start gap-4 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A53860]"
+                  >
+                    <div className={`w-11 h-11 rounded-full ${item.iconColor} text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform`}>
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <div className="flex items-start justify-between gap-2.5">
+                        <span className="font-bold text-xs sm:text-[13px] text-[#1E141B] group-hover:text-[#670D2F] transition-colors leading-snug">
+                          {item.title}
+                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-[#670D2F] border border-rose-100">
+                            {item.badge}
+                          </span>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-[#670D2F] opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-[#6C5B65] leading-relaxed line-clamp-2">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* 2 Specialized Actions: Ship 30 Essay & HTML Artifact */}
-          <div className="space-y-2.5 text-left max-w-2xl mx-auto pt-2">
-            <div className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-1">
+          <div className="space-y-3.5 text-left max-w-4xl mx-auto pt-1">
+            <div className="text-[11px] font-bold text-[#670D2F] uppercase tracking-wider px-1">
               Specialized Agent Capabilities
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {SPECIALIZED_ACTION_CARDS.map((item, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => onSelectSuggested(item.prompt, item.ship30, item.artifact)}
-                  className={`p-3.5 rounded-xl bg-white hover:bg-gray-50/80 border transition-all duration-150 text-left cursor-pointer group space-y-1.5 shadow-xs focus-visible:outline-none focus-visible:ring-2 ${
-                    item.ship30
-                      ? 'border-[#E5E7EB] hover:border-amber-400 focus-visible:ring-amber-400'
-                      : 'border-[#E5E7EB] hover:border-emerald-400 focus-visible:ring-emerald-400'
-                  }`}
+                  aria-label={`Execute specialized capability: ${item.title}`}
+                  className="p-4 sm:p-4.5 rounded-2xl bg-white hover:bg-[#FFFDFB] border border-[#ECE3D8] hover:border-[#670D2F]/60 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-200 text-left cursor-pointer group flex items-start gap-4 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#670D2F]"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 font-semibold text-xs text-[#171923]">
-                      {item.ship30 ? (
-                        <Feather className="w-3.5 h-3.5 text-amber-600" />
-                      ) : (
-                        <Layout className="w-3.5 h-3.5 text-emerald-600" />
-                      )}
-                      <span>{item.title}</span>
-                    </div>
-                    <span
-                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 ${
-                        item.ship30
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
+                  <div className={`w-11 h-11 rounded-full ${item.iconColor} text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform`}>
+                    {item.ship30 ? <Feather className="w-5 h-5" /> : <Layout className="w-5 h-5" />}
                   </div>
-                  <p className="text-[11px] text-[#6B7280] leading-relaxed">
-                    {item.desc}
-                  </p>
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <span className="font-bold text-xs sm:text-[13px] text-[#1E141B] group-hover:text-[#670D2F] transition-colors leading-snug">
+                        {item.title}
+                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-[#670D2F] border border-rose-100">
+                          {item.badge}
+                        </span>
+                        <ArrowUpRight className="w-3.5 h-3.5 text-[#670D2F] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-[#6C5B65] leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
         </div>
       ) : (
-        /* Conversation Experience */
-        <div className="max-w-3xl mx-auto space-y-6 pb-4">
+        /* Conversation Experience with comfortable bottom clearance */
+        <div className="max-w-4xl mx-auto space-y-6 pb-20 sm:pb-24">
           {messages.map((msg) => {
             const isUser = msg.role === 'user';
             return (
@@ -187,7 +203,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 className={`flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}
               >
                 {!isUser && (
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-[#4F46E5] shrink-0 mt-0.5 shadow-xs">
+                  <div className="w-8 h-8 rounded-full bg-[#670D2F] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                     <Compass className="w-4 h-4" />
                   </div>
                 )}
@@ -195,21 +211,21 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 <div
                   className={`space-y-3 ${
                     isUser
-                      ? 'max-w-[85%] bg-[#EEF2FF] text-[#171923] px-4 py-3 rounded-2xl rounded-tr-xs text-sm border border-indigo-100 shadow-xs'
-                      : 'w-full text-[#171923] text-sm'
+                      ? 'max-w-[85%] bg-white text-[#1E141B] px-4 py-3 rounded-2xl rounded-tr-xs text-sm border border-[#ECE3D8] shadow-sm'
+                      : 'w-full text-[#1E141B] text-sm'
                   }`}
                 >
                   {isUser ? (
                     <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
                   ) : (
-                    <div className="space-y-4 bg-white border border-[#E5E7EB] rounded-2xl p-4 sm:p-5 shadow-xs">
+                    <div className="space-y-4 bg-white border border-[#ECE3D8] rounded-2xl p-4 sm:p-5 shadow-sm">
                       {/* Assistant Header & Actions */}
-                      <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] text-xs">
+                      <div className="flex items-center justify-between pb-3 border-b border-[#ECE3D8] text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-[#171923] text-xs">
+                          <span className="font-semibold text-[#1E141B] text-xs">
                             The Lenny Growth Assistant
                           </span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 text-[#6B7280] border border-gray-200">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#FAF7F2] text-[#670D2F] border border-[#ECE3D8]">
                             {msg.model_name || msg.provider || activeModel || 'grounded'}
                           </span>
                         </div>
@@ -218,12 +234,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                           onClick={() => handleCopyMessage(msg.id, msg.content)}
                           aria-label="Copy response"
                           title="Copy response"
-                          className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 text-[#6B7280] hover:text-[#171923] transition-colors text-xs cursor-pointer"
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[#FAF7F2] text-[#6C5B65] hover:text-[#1E141B] transition-colors text-xs cursor-pointer"
                         >
                           {copiedId === msg.id ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-[#059669]" />
-                              <span className="text-[#059669] text-[11px]">Copied</span>
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-emerald-600 text-[11px]">Copied</span>
                             </>
                           ) : (
                             <>
@@ -235,7 +251,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       </div>
 
                       {/* Markdown Body */}
-                      <div className="prose prose-sm max-w-none text-[#171923] prose-headings:text-[#171923] prose-headings:font-bold prose-h2:text-base prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-1.5 prose-h3:text-sm prose-p:text-[#374151] prose-p:leading-relaxed prose-strong:text-[#171923] prose-ul:text-[#374151] prose-li:my-1 prose-blockquote:border-l-[#4F46E5] prose-blockquote:text-[#4B5563] prose-blockquote:bg-gray-50 prose-blockquote:py-1 prose-blockquote:px-3 prose-blockquote:rounded-r-lg prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:border prose-pre:border-gray-800 prose-code:text-[#4F46E5] prose-code:bg-indigo-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
+                      <div className="prose prose-sm max-w-none text-[#1E141B] prose-headings:text-[#1E141B] prose-headings:font-bold prose-h2:text-base prose-h2:border-b prose-h2:border-[#ECE3D8] prose-h2:pb-1.5 prose-h3:text-sm prose-p:text-[#382B33] prose-p:leading-relaxed prose-strong:text-[#1E141B] prose-ul:text-[#382B33] prose-li:my-1 prose-blockquote:border-l-[#8C163F] prose-blockquote:text-[#670D2F] prose-blockquote:bg-[#FAF7F2] prose-blockquote:py-1 prose-blockquote:px-3 prose-blockquote:rounded-r-lg prose-pre:bg-[#2A0313] prose-pre:text-white prose-pre:border prose-pre:border-[#4A0A24] prose-code:text-[#670D2F] prose-code:bg-[#FAF7F2] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:border prose-code:border-[#ECE3D8] prose-code:before:content-none prose-code:after:content-none">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           rehypePlugins={[rehypeSanitize]}
@@ -246,16 +262,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
                       {/* Attached Artifact banner */}
                       {msg.artifact && (
-                        <div className="p-3 bg-indigo-50/60 border border-indigo-200 rounded-xl flex items-center justify-between">
+                        <div className="p-3 bg-[#FAF7F2] border border-[#A53860]/20 rounded-xl flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className="p-2 bg-indigo-100 rounded-lg text-[#4F46E5]">
+                            <div className="p-2 bg-rose-100 rounded-lg text-[#8C163F]">
                               <Layers className="w-4 h-4" />
                             </div>
                             <div>
-                              <div className="text-xs font-semibold text-[#171923]">
+                              <div className="text-xs font-semibold text-[#1E141B]">
                                 {msg.artifact.title}
                               </div>
-                              <div className="text-[10px] text-[#6B7280] uppercase font-mono">
+                              <div className="text-[10px] text-[#6C5B65] uppercase font-mono">
                                 {msg.artifact.artifact_type} Artifact • Sandboxed
                               </div>
                             </div>
@@ -263,7 +279,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                           <button
                             type="button"
                             onClick={() => onOpenArtifact(msg.artifact!)}
-                            className="px-3 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-xs font-medium cursor-pointer transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                            className="px-3 py-1.5 bg-[#670D2F] hover:bg-[#4A0A23] text-white rounded-lg text-xs font-medium cursor-pointer transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A53860]"
                           >
                             Open Artifact
                           </button>
@@ -272,13 +288,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
                       {/* Source Citations */}
                       {msg.citations && msg.citations.length > 0 && (
-                        <div className="pt-3 border-t border-[#E5E7EB] space-y-2">
-                          <div className="flex items-center justify-between text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">
+                        <div className="pt-3 border-t border-[#ECE3D8] space-y-2">
+                          <div className="flex items-center justify-between text-[11px] font-semibold text-[#6C5B65] uppercase tracking-wider">
                             <span className="flex items-center gap-1.5">
-                              <Quote className="w-3 h-3 text-[#4F46E5]" />
+                              <Quote className="w-3 h-3 text-[#A53860]" />
                               <span>Grounded Transcript Sources ({msg.citations.length})</span>
                             </span>
-                            <span className="text-[10px] text-gray-500 font-normal lowercase">
+                            <span className="text-[10px] text-[#6C5B65]/70 font-normal lowercase">
                               click to inspect passage & video
                             </span>
                           </div>
@@ -289,22 +305,22 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                 key={cIdx}
                                 type="button"
                                 onClick={() => onInspectCitation(c)}
-                                className="group flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white hover:bg-indigo-50/60 border border-[#E5E7EB] hover:border-indigo-300 text-[11px] text-[#374151] transition-all cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#ECE3D8] hover:border-[#A53860]/50 text-[11px] text-[#382B33] transition-all cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A53860]"
                               >
-                                <span className="font-semibold text-[#4F46E5] group-hover:text-[#4338CA]">
+                                <span className="font-semibold text-[#670D2F] group-hover:text-[#8C163F]">
                                   {c.guest}
                                 </span>
                                 {c.timestamp_str && (
-                                  <span className="font-mono text-[10px] px-1 py-0.2 rounded bg-gray-100 text-[#6B7280] border border-gray-200">
+                                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-md bg-[#FAF7F2] text-[#6C5B65] border border-[#ECE3D8]">
                                     {c.timestamp_str}
                                   </span>
                                 )}
                                 {c.similarity_score !== undefined && (
-                                  <span className="text-[10px] text-[#059669] font-mono">
+                                  <span className="text-[10px] text-emerald-600 font-mono">
                                     {(c.similarity_score * 100).toFixed(0)}%
                                   </span>
                                 )}
-                                <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600" />
+                                <ExternalLink className="w-3 h-3 text-[#6C5B65]/60 group-hover:text-[#1E141B]" />
                               </button>
                             ))}
                           </div>
@@ -315,7 +331,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 </div>
 
                 {isUser && (
-                  <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[#6B7280] shrink-0 mt-0.5 shadow-xs">
+                  <div className="w-8 h-8 rounded-full bg-[#FAF7F2] border border-[#ECE3D8] flex items-center justify-center text-[#670D2F] shrink-0 mt-0.5 shadow-xs">
                     <User className="w-4 h-4" />
                   </div>
                 )}
@@ -325,7 +341,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
           {/* Interrupted User Turn Recovery Banner */}
           {hasOrphanedUserTurn && (
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start justify-between gap-3 animate-in fade-in shadow-xs">
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start justify-between gap-3 animate-in fade-in shadow-xs">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-amber-800 font-semibold text-xs">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -338,7 +354,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               <button
                 type="button"
                 onClick={() => onSelectSuggested(lastMessage.content)}
-                className="px-3 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-xs font-semibold cursor-pointer shrink-0 transition-colors shadow-xs"
+                className="px-3 py-1.5 bg-[#670D2F] hover:bg-[#4A0A23] text-white rounded-lg text-xs font-semibold cursor-pointer shrink-0 transition-colors shadow-xs"
               >
                 Generate Response with {activeProvider || 'Ollama'}
               </button>
@@ -348,14 +364,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           {/* Polished Loading indicator */}
           {isLoading && (
             <div className="flex gap-3.5 items-start animate-in fade-in duration-150">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-[#4F46E5] shrink-0 mt-0.5 shadow-xs">
+              <div className="w-8 h-8 rounded-full bg-[#670D2F] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                 <Compass className="w-4 h-4 animate-spin" />
               </div>
-              <div className="p-4 rounded-2xl bg-white border border-[#E5E7EB] text-xs text-[#374151] flex items-center gap-3 shadow-xs">
+              <div className="p-4 rounded-2xl bg-white border border-[#ECE3D8] text-xs text-[#382B33] flex items-center gap-3 shadow-sm">
                 <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-bounce" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-bounce [animation-delay:0.4s]" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#670D2F] animate-bounce" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#670D2F] animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#670D2F] animate-bounce [animation-delay:0.4s]" />
                 </div>
                 <span>Retrieving podcast transcripts & synthesizing grounded response...</span>
               </div>

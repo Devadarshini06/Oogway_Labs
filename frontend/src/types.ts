@@ -49,3 +49,18 @@ export interface ModelListResponse {
   active_model: string;
   models: ModelInfo[];
 }
+
+export function isSyntheticTestSession(title?: string): boolean {
+  if (!title) return false;
+  const t = title.trim().toLowerCase();
+  return (
+    t === 'session a' ||
+    t === 'session b' ||
+    t === 'test message' ||
+    t === 'test 1' ||
+    t === 'test 2' ||
+    t.startsWith('journey test session') ||
+    t.startsWith('pre-submission validation')
+  );
+}
+

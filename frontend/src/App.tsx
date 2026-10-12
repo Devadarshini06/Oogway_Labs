@@ -8,6 +8,7 @@ import { ArtifactViewer } from './components/ArtifactViewer';
 import { CitationModal } from './components/CitationModal';
 import { api, ApiError } from './services/api';
 import type { Session, Message, ModelInfo, Citation, ArtifactRef } from './types';
+import { isSyntheticTestSession } from './types';
 
 export const App: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -60,7 +61,13 @@ export const App: React.FC = () => {
       const data = await api.getSessions();
       setSessions(data);
       if (data.length > 0 && !activeSessionId) {
-        setActiveSessionId(data[0].id);
+        // Prioritize real user conversation over synthetic test runner fixtures
+        const firstReal = data.find((s) => !isSyntheticTestSession(s.title));
+        if (firstReal) {
+          setActiveSessionId(firstReal.id);
+        } else {
+          setActiveSessionId(data[0].id);
+        }
       }
     } catch (e) {
       console.error('Failed to load sessions:', e);
@@ -134,6 +141,8 @@ export const App: React.FC = () => {
     setIsLoading(true);
 
     const activeModel = models.find((m) => m.provider === selectedProvider);
+    const resolvedModelName =
+      activeModel?.id && activeModel.id !== selectedProvider ? activeModel.id : undefined;
 
     // Optimistic user message
     const tempUserMsg: Message = {
@@ -151,7 +160,7 @@ export const App: React.FC = () => {
         session_id: activeSessionId || undefined,
         message: prompt,
         provider: selectedProvider,
-        model: activeModel?.id,
+        model: resolvedModelName,
         trigger_ship30: triggerShip30,
         trigger_artifact: triggerArtifact,
       });
@@ -207,7 +216,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#F5F6FA] text-[#171923] font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#F3E3D0] text-[#3A0519] font-sans">
       {/* Left Sidebar */}
       <Sidebar
         sessions={sessions}
@@ -232,20 +241,23 @@ export const App: React.FC = () => {
       />
 
       {/* Main Chat Center Container */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6FA]">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#FAF7F2]">
         {/* Top Navbar */}
-        <header className="h-14 border-b border-gray-200/80 px-4 flex items-center justify-between bg-white/80 backdrop-blur-xs shrink-0">
-          <div className="flex items-center gap-2">
+        <header className="h-14 border-b border-[#ECE3D8]/80 px-4 sm:px-8 flex items-center justify-between bg-[#FAF7F2]/90 backdrop-blur-md shrink-0">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => setSidebarOpenMobile(true)}
               aria-label="Open sidebar menu"
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 md:hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="p-1.5 rounded-lg hover:bg-black/5 text-[#6C5B65] hover:text-[#1E141B] md:hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C163F]"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-xs font-semibold text-gray-800 truncate max-w-[200px] sm:max-w-xs">
-              {sessions.find((s) => s.id === activeSessionId)?.title || 'New Conversation'}
-            </h2>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#8C163F]/30" />
+              <h2 className="text-xs sm:text-[13px] font-bold text-[#1E141B] truncate max-w-[220px] sm:max-w-md">
+                {sessions.find((s) => s.id === activeSessionId)?.title || 'New Conversation'}
+              </h2>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -254,9 +266,9 @@ export const App: React.FC = () => {
               <button
                 onClick={() => setActiveArtifact(null)}
                 aria-label="Close artifact viewer"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-[#FFFDFB] border border-[#ECE3D8] text-[#670D2F] text-xs font-medium cursor-pointer transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C163F]"
               >
-                <Layers className="w-3.5 h-3.5" />
+                <Layers className="w-3.5 h-3.5 text-[#8C163F]" />
                 <span className="hidden sm:inline">Close Artifact</span>
               </button>
             )}
@@ -322,7 +334,7 @@ export const App: React.FC = () => {
         />
 
         {/* Composer */}
-        <footer className="border-t border-gray-200/80 bg-white shrink-0">
+        <footer className="border-t border-[#ECE3D8] bg-[#FAF7F2]/80 backdrop-blur-md shrink-0">
           <ChatComposer onSendMessage={handleSendMessage} isLoading={isLoading} />
         </footer>
       </main>
